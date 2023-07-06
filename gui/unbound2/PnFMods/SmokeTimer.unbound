@@ -1,0 +1,85 @@
+(def element SmokeTimersContainer() layout=true
+	(scope
+		(var parameterCol:gfx = "$datahub.getCollection(CC.parameter)")
+		(var smokeTimersContainerEntity:gfx = "$datahub.getPrimaryCompositeEntity(CC.parameter, 0, 'modSmokeTimerEntityList')" (event "parameterCol.evAdded") (event "parameterCol.evRemoved"))
+		(var dataComponent:gfx = "smokeTimersContainerEntity.data")
+		(var smokeTimerEntityIds:array = "dataComponent ? dataComponent.data.ids : []" (event "dataComponent.evChanged"))
+	)
+
+	(controller $Repeat renderer='SmokeTimerItem'
+		(bind count "smokeTimerEntityIds.length" (event "dataComponent.evChanged"))
+		(args "smokeTimerEntityIds[$index]")
+	)
+)
+
+
+(def element SmokeTimerItem (entityId:number) layout=true
+	(scope
+		#Event
+		(event evMarkerUpdate)
+		#Smoke Timers Entity
+		(var smokeTimerEntity:gfx = "$datahub.getEntity(entityId)")
+		(var createdTime:number = "smokeTimerEntity.data.data.spawnTime")
+		(var screenPosition:gfx = "smokeTimerEntity.screenPosition")
+		(var worldMarker:gfx = "smokeTimerEntity.worldMarker")
+		#Visibility
+		(var cameraEntity:gfx = "$datahub.getSingleEntity(CC.camera)")
+		(var altVision:bool = "cameraEntity.camera.altVision" (event "cameraEntity.camera.evAltVisionChanged"))
+		(var distanceComponent:gfx = "smokeTimerEntity.distance" (event "smokeTimerEntity.evAdded") (event "smokeTimerEntity.evRemoved"))
+		(var distanceIndex:number = "distanceComponent.distanceIndex" (event "distanceComponent.evDistanceIndexChanged"))
+		(var closeToCamera:bool = "distanceIndex == DistanceType.NEAR")
+		(var isTimerVisible:bool = "altVision || closeToCamera")
+		(var isDistanceVisible:bool = "altVision")
+		#Timers
+		(var isTimerEnabled:bool = "createdTime > 0")
+		(var timerEntity:gfx = "$datahub.getSingleEntity(CC.timer)")
+		(var timeElapsed:number = "timerEntity.timer.currentTime - createdTime" (event "timerEntity.timer.evInfrequent"))
+		(var timeElapsedText:str = "isTimerEnabled && isTimerVisible ? '+' + round(timeElapsed) : ' '")
+		#Screen Pos
+		(var posX:number = "screenPosition ? screenPosition.position.x : 0" (event "evEnterFrame"))
+		(var posY:number = "screenPosition ? screenPosition.position.y : 0" (event "evEnterFrame"))
+		(var posZ:number = "worldMarker ? worldMarker.zindex : 0" (event "worldMarker.evZindexChanged"))
+		(var updateEnabled:bool = "screenPosition && !(screenPosition.behindCamera)" (event "evEnterFrame"))
+		
+	)
+
+	(dispatch evMarkerUpdate args={} (event "evEnterFrame") (bind enabled "updateEnabled"))
+
+	(style
+		(bind left "posX")
+		(bind top "posY")
+		(bind zindex "posZ")
+		(position = "absolute")
+		(align = "center|bottom")
+	)
+
+	(block
+		(style
+			(align = "center|middle")
+			(width = 0) (height = 0)
+		)
+		
+		(element SmokeDistanceItem "entityId" "isDistanceVisible")
+		(block
+			(style
+				(bind backgroundImage "'url:../quick_commands/qc_icon_smoke.png'")
+				(width = 51) (height = 51)
+				(scaleX = 0.4) (scaleY = 0.4)
+			)
+		)
+		(element SimpleMarkerTextItem "timeElapsedText")
+	)
+)
+
+(def element SmokeDistanceItem (_entityId:number, _visibility:bool) layout=true
+	(scope
+		(var markerEntity:gfx = "$datahub.getEntity(_entityId)")
+
+		(var timer:gfx = "$datahub.getSingleComponent(CC.timer)")
+
+		(macro GET_MARKER_ENTITY_COMPONENT 'distance')
+		(var distanceToShip:number = "distanceComponent ? distanceComponent.distanceToShip : 0" (event "timer.evInfrequent"))
+		(var distanceText:str = "_visibility ? formatFloatingPoint(round(distanceToShip * 10) / 10, 1) + ' ' + tr('IDS_KILOMETER'): ' '")
+	)
+	(element SimpleMarkerTextItem "distanceText")
+)
