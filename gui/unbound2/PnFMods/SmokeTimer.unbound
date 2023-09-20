@@ -6,14 +6,14 @@
 		(var smokeTimerEntityIds:array = "dataComponent ? dataComponent.data.ids : []" (event "dataComponent.evChanged"))
 	)
 
-	(controller $Repeat renderer='SmokeTimerItem'
+	(controller $Repeat renderer='WorldSmokeTimerItem'
 		(bind count "smokeTimerEntityIds.length" (event "dataComponent.evChanged"))
 		(args "smokeTimerEntityIds[$index]")
 	)
 )
 
 
-(def element SmokeTimerItem (entityId:number) layout=true
+(def element WorldSmokeTimerItem (entityId:number) layout=true
 	(scope
 		#Event
 		(event evMarkerUpdate)
@@ -25,19 +25,21 @@
 		#Visibility
 		(var cameraEntity:gfx = "$datahub.getSingleEntity(CC.camera)")
 		(var altVision:bool = "cameraEntity.camera.altVision" (event "cameraEntity.camera.evAltVisionChanged"))
+		(var isBinocular:bool = "cameraEntity.camera.isBinocular" (event "cameraEntity.camera.evIsBinocularChanged"))
 		(var distanceComponent:gfx = "smokeTimerEntity.distance" (event "smokeTimerEntity.evAdded") (event "smokeTimerEntity.evRemoved"))
 		(var distanceIndex:number = "distanceComponent.distanceIndex" (event "distanceComponent.evDistanceIndexChanged"))
 		(var closeToCamera:bool = "distanceIndex == DistanceType.NEAR")
 		(var isTimerVisible:bool = "altVision || closeToCamera")
 		(var isDistanceVisible:bool = "altVision")
+		(var markerAlpha:number = "isBinocular ? 0.7 : 1.0")
 		#Timers
 		(var isTimerEnabled:bool = "createdTime > 0")
 		(var timerEntity:gfx = "$datahub.getSingleEntity(CC.timer)")
 		(var timeElapsed:number = "timerEntity.timer.currentTime - createdTime" (event "timerEntity.timer.evInfrequent"))
 		(var timeElapsedText:str = "isTimerEnabled && isTimerVisible ? '+' + round(timeElapsed) : ' '")
 		#Screen Pos
-		(var posX:number = "screenPosition ? screenPosition.position.x : 0" (event "evEnterFrame"))
-		(var posY:number = "screenPosition ? screenPosition.position.y : 0" (event "evEnterFrame"))
+		(var posX:number = "screenPosition ? screenPosition.position.x : 0" (event "evMarkerUpdate"))
+		(var posY:number = "screenPosition ? screenPosition.position.y : 0" (event "evMarkerUpdate"))
 		(var posZ:number = "worldMarker ? worldMarker.zindex : 0" (event "worldMarker.evZindexChanged"))
 		(var updateEnabled:bool = "screenPosition && !(screenPosition.behindCamera)" (event "evEnterFrame"))
 		
@@ -51,6 +53,7 @@
 		(bind zindex "posZ")
 		(position = "absolute")
 		(align = "center|bottom")
+		(bind alpha "markerAlpha")
 	)
 
 	(block
@@ -82,4 +85,74 @@
 		(var distanceText:str = "_visibility ? formatFloatingPoint(round(distanceToShip * 10) / 10, 1) + ' ' + tr('IDS_KILOMETER'): ' '")
 	)
 	(element SimpleMarkerTextItem "distanceText")
+)
+
+(def element MinimapMarkersContainer (_mapScale:number, _itemScale:number, _scaleRatio:number, _markerSettingsMap:array, _isLoading:bool = false) layout=true
+	(scope
+		(var markersCollection:gfx = "$datahub.getCollection(CC.minimapMarker)")
+		(var availableMarkers:gfx = "markersCollection.getChildByPath('available')")
+
+		#mod
+		(var parameterCol:gfx = "$datahub.getCollection(CC.parameter)")
+		(var smokeTimersContainerEntity:gfx = "$datahub.getPrimaryCompositeEntity(CC.parameter, 0, 'modSmokeTimerEntityList')" (event "parameterCol.evAdded") (event "parameterCol.evRemoved"))
+		(var dataComponent:gfx = "smokeTimersContainerEntity.data")
+		(var smokeTimerEntityIds:array = "dataComponent ? dataComponent.data.ids : []" (event "dataComponent.evChanged"))
+		#mod
+	)
+
+	(class $FullsizeAbsolute)
+
+	#mod
+	(mc 'flash.display.Sprite'
+		(controller $Repeat renderer='MapSmokeTimerItem'
+			(bind count "smokeTimerEntityIds.length" (event "dataComponent.evChanged"))
+			(args "smokeTimerEntityIds[$index]" "_mapScale" "_itemScale" "_scaleRatio")
+		)
+		(alpha = 0.4)
+		(blendMode = 'layer')
+	)
+	#mod
+
+	(controller $Repeat renderer='MapMarkerItem'
+		(bind count "availableMarkers.items.length" watch=false (event "availableMarkers.evAdded"))
+		(bindcall removeChildAt "$event[1]" (event "availableMarkers.evRemoved"))
+		(args "availableMarkers" "_mapScale" "_itemScale" "_scaleRatio" "_markerSettingsMap" "_isLoading")
+	)
+)
+
+(def element MapSmokeTimerItem (entityId:number, _mapScale:number, _itemScale:number, _scaleRatio:number) layout=true
+	(scope
+		#Smoke Timers Entity
+		(var smokeTimerEntity:gfx = "$datahub.getEntity(entityId)")
+		(var mapPosition:gfx = "smokeTimerEntity.mapPosition")
+		#Marker Scale
+		(var markerScale:number = "_itemScale / _mapScale")
+		(var radius:number = "smokeTimerEntity.data.data.radius * _scaleRatio")
+		#Map Pos
+		(var posX:number = "mapPosition ? _scaleRatio * mapPosition.position.x : 0")# (event "evEnterFrame"))
+		(var posY:number = "mapPosition ? _scaleRatio * mapPosition.position.y : 0")# (event "evEnterFrame"))
+		(var posZ:number = "worldMarker ? worldMarker.zindex : 0" (event "worldMarker.evZindexChanged"))
+	)
+
+	(macro BIND_FAIR_SCALE "markerScale")
+
+	(style
+		(bind left "posX")
+		(bind top "posY")
+		(bind zindex "posZ")
+		(position = "absolute")
+	)
+
+	(block
+		(style
+			(align = "center|middle")
+			(width = 0) (height = 0)
+		)
+		
+		(controller $Sector
+			(arc = 360)
+			(bind radius "radius")
+			(color = "0xD3D3D3")
+		)
+	)
 )
