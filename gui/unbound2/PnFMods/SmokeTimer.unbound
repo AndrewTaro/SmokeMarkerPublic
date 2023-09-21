@@ -1,4 +1,7 @@
-(def element SmokeTimersContainer() layout=true
+######################################################
+#### WORLD MARKERS ###################################
+######################################################
+(def element WorldSmokeTimersContainer() layout=true
 	(scope
 		(var parameterCol:gfx = "$datahub.getCollection(CC.parameter)")
 		(var smokeTimersContainerEntity:gfx = "$datahub.getPrimaryCompositeEntity(CC.parameter, 0, 'modSmokeTimerEntityList')" (event "parameterCol.evAdded") (event "parameterCol.evRemoved"))
@@ -87,22 +90,36 @@
 	(element SimpleMarkerTextItem "distanceText")
 )
 
+######################################################
+#### MINIMAP MARKERS #################################
+######################################################
 (def element MinimapMarkersContainer (_mapScale:number, _itemScale:number, _scaleRatio:number, _markerSettingsMap:array, _isLoading:bool = false) layout=true
 	(scope
 		(var markersCollection:gfx = "$datahub.getCollection(CC.minimapMarker)")
 		(var availableMarkers:gfx = "markersCollection.getChildByPath('available')")
-
-		#mod
-		(var parameterCol:gfx = "$datahub.getCollection(CC.parameter)")
-		(var smokeTimersContainerEntity:gfx = "$datahub.getPrimaryCompositeEntity(CC.parameter, 0, 'modSmokeTimerEntityList')" (event "parameterCol.evAdded") (event "parameterCol.evRemoved"))
-		(var dataComponent:gfx = "smokeTimersContainerEntity.data")
-		(var smokeTimerEntityIds:array = "dataComponent ? dataComponent.data.ids : []" (event "dataComponent.evChanged"))
-		#mod
 	)
 
 	(class $FullsizeAbsolute)
 
 	#mod
+	(element MapSmokeTimersContainer "_mapScale" "_itemScale" "_scaleRatio")
+	#mod
+
+	(controller $Repeat renderer='MapMarkerItem'
+		(bind count "availableMarkers.items.length" watch=false (event "availableMarkers.evAdded"))
+		(bindcall removeChildAt "$event[1]" (event "availableMarkers.evRemoved"))
+		(args "availableMarkers" "_mapScale" "_itemScale" "_scaleRatio" "_markerSettingsMap" "_isLoading")
+	)
+)
+
+(def element MapSmokeTimersContainer (_mapScale:number, _itemScale:number, _scaleRatio:number) layout=true
+	(scope
+		(var parameterCol:gfx = "$datahub.getCollection(CC.parameter)")
+		(var smokeTimersContainerEntity:gfx = "$datahub.getPrimaryCompositeEntity(CC.parameter, 0, 'modSmokeTimerEntityList')" (event "parameterCol.evAdded") (event "parameterCol.evRemoved"))
+		(var dataComponent:gfx = "smokeTimersContainerEntity.data")
+		(var smokeTimerEntityIds:array = "dataComponent ? dataComponent.data.ids : []" (event "dataComponent.evChanged"))
+	)
+
 	(mc 'flash.display.Sprite'
 		(controller $Repeat renderer='MapSmokeTimerItem'
 			(bind count "smokeTimerEntityIds.length" (event "dataComponent.evChanged"))
@@ -110,13 +127,6 @@
 		)
 		(alpha = 0.4)
 		(blendMode = 'layer')
-	)
-	#mod
-
-	(controller $Repeat renderer='MapMarkerItem'
-		(bind count "availableMarkers.items.length" watch=false (event "availableMarkers.evAdded"))
-		(bindcall removeChildAt "$event[1]" (event "availableMarkers.evRemoved"))
-		(args "availableMarkers" "_mapScale" "_itemScale" "_scaleRatio" "_markerSettingsMap" "_isLoading")
 	)
 )
 
