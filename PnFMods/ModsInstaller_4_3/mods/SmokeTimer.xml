@@ -3,16 +3,16 @@
 		<root_Node>
 			<find_Node tag="elementList">
 				<insert>
-					<element class="lesta.unbound2.UbElement" elementName="SmokeTimersContainer" name="unbound2SmokeTimersContainer">
+					<element class="lesta.unbound2.UbElement" elementName="WorldSmokeTimersContainer" name="unbound2WorldSmokeTimersContainer">
 						<properties hitTest="false"/>
 					</element>
 					<attrs>
-						<do_if_not_exist tag="element" type="name" name="unbound2SmokeTimersContainer"/>
+						<do_if_not_exist tag="element" type="name" name="unbound2WorldSmokeTimersContainer"/>
 						<position insert="before_node" tag="element" attr_1="elementName" value_1="MarkersContainer"/>
 					</attrs>
 				</insert>
 			</find_Node>
 		</root_Node>
 	</target_File>
-	<check name="SmokeTimer" version="1.1.0"/>
+	<check name="SmokeTimer" version="1.2.0"/>
 </code>
