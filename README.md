@@ -15,3 +15,6 @@ The mod is officially checked and approved by WG, thus is safe to use.
 2. Unzip the archive and you should get `gui`, `PnFMods` folders and `PnFModsLoader.py`.
 3. Move them to `(wows)/bin/(latest_number)/res_mods/`. So the path will look like `res_mods/PnFModsLoader.py`, etc.
 4. Done!
+
+# Config
+[TTaro Mod Config](../../../TTaroModConfig) supports this mod.  You can adjust the color of the smoke marker on minimap.
