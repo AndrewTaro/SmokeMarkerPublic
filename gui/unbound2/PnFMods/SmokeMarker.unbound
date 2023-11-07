@@ -93,6 +93,26 @@
 ######################################################
 #### MINIMAP MARKERS #################################
 ######################################################
+(def constant TT_SMOKEMARKER_INSTALLED true) #for modconfig
+(def constant SM_COLOR_PREF_NAME {
+	ALPHA:	'smokeMarkerMinimapOpacity',
+	RED:	'smokeMarkerMinimapRed',
+	GREEN:	'smokeMarkerMinimapGreen',
+	BLUE:	'smokeMarkerMinimapBlue',
+})
+(def constant SM_COLOR_DEFAULT {
+	ALPHA: 4,
+	RED: 8,
+	GREEN: 8,
+	BLUE: 8,
+})
+
+(def macro SM_GET_COLORSCALE_PREF (_colorName:expression)
+	(var name="_colorName+'PrefName'" type=str value="SM_COLOR_PREF_NAME[toUpper(_colorName)]")
+	(var name="_colorName+'PrefNum'" type=number value="$scope[_colorName+'PrefName'] in userPrefsNum ? round(userPrefsNum[$scope[_colorName+'PrefName']]) : SM_COLOR_DEFAULT[toUpper(_colorName)]" (event "userPrefsComponent.evUserPrefsChanged"))
+	(var name="_colorName+'Scale'" type=number value="$scope[_colorName+'PrefNum'] / 10.0" (event "userPrefsComponent.evUserPrefsChanged"))
+)
+
 (def element MinimapMarkersContainer (_mapScale:number, _itemScale:number, _scaleRatio:number, _markerSettingsMap:array, _isLoading:bool = false) layout=true
 	(scope
 		(var markersCollection:gfx = "$datahub.getCollection(CC.minimapMarker)")
@@ -118,6 +138,14 @@
 		(var smokeMarkersContainerEntity:gfx = "$datahub.getPrimaryCompositeEntity(CC.parameter, 0, 'modSmokeMarkerEntityList')" (event "parameterCol.evAdded") (event "parameterCol.evRemoved"))
 		(var dataComponent:gfx = "smokeMarkersContainerEntity.data")
 		(var smokeMarkerEntityIds:array = "dataComponent ? dataComponent.data.ids : []" (event "dataComponent.evChanged"))
+
+		#UserPrefs
+		(var userPrefsComponent:gfx = "$datahub.getSingleComponent(CC.userPrefs)")
+		(var userPrefsNum:dict = "userPrefsComponent.userPrefs.chatBoxWidth" (event "userPrefsComponent.evUserPrefsChanged"))
+		(macro SM_GET_COLORSCALE_PREF "'alpha'") #alphaScale
+		(macro SM_GET_COLORSCALE_PREF "'red'") #redScale
+		(macro SM_GET_COLORSCALE_PREF "'green'") #greenScale
+		(macro SM_GET_COLORSCALE_PREF "'blue'") #blueScale
 	)
 
 	(mc 'flash.display.Sprite'
@@ -125,7 +153,7 @@
 			(bind count "smokeMarkerEntityIds.length" (event "dataComponent.evChanged"))
 			(args "smokeMarkerEntityIds[$index]" "_mapScale" "_itemScale" "_scaleRatio")
 		)
-		(alpha = 0.4)
+		(bind colorTransform "{ redMultiplier: redScale, greenMultiplier: greenScale, blueMultiplier: blueScale, alphaMultiplier: alphaScale}")
 		(blendMode = 'layer')
 	)
 )
@@ -162,7 +190,7 @@
 		(controller $Sector
 			(arc = 360)
 			(bind radius "radius")
-			(color = "0xD3D3D3")
+			(bind color "0xFFFFFF")
 		)
 	)
 )
