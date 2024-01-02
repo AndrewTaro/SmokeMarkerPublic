@@ -1,3 +1,37 @@
+(def constant TT_SMOKEMARKER_INSTALLED true) #for modconfig
+(def constant SM_COLOR_PREF_NAME {
+	MINIMAP: {
+		ALPHA:	'smokeMarkerMinimapOpacity',
+		RED:	'smokeMarkerMinimapRed',
+		GREEN:	'smokeMarkerMinimapGreen',
+		BLUE:	'smokeMarkerMinimapBlue',
+	},
+	WORLD: {
+		ALPHA:	'smokeMarkerWorldOpacity',
+		RED:	'smokeMarkerWorldRed',
+		GREEN:	'smokeMarkerWorldGreen',
+		BLUE:	'smokeMarkerWorldBlue',
+	},
+})
+(def constant SM_COLOR_DEFAULT {
+	MINIMAP: {
+		ALPHA: 0.4,
+		RED: 0.8,
+		GREEN: 0.8,
+		BLUE: 0.8,
+	},
+	WORLD: {
+		ALPHA: 1.0,
+		RED: 1.0,
+		GREEN: 1.0,
+		BLUE: 1.0,
+	},
+})
+
+(def macro SM_GET_PREF_NUMBER (_varName:expression, _prefKey:expression, _default:expression="0.8")
+	(var name="_varName" type=number value="(userPrefsNum && _prefKey in userPrefsNum) ? (round(userPrefsNum[_prefKey]) * 0.1) : _default")
+)
+
 ######################################################
 #### WORLD MARKERS ###################################
 ######################################################
@@ -7,21 +41,33 @@
 		(var smokeMarkersContainerEntity:gfx = "$datahub.getPrimaryCompositeEntity(CC.parameter, 0, 'modSmokeMarkerEntityList')" (event "parameterCol.evAdded") (event "parameterCol.evRemoved"))
 		(var dataComponent:gfx = "smokeMarkersContainerEntity.data")
 		(var smokeMarkerEntityIds:array = "dataComponent ? dataComponent.data.ids : []" (event "dataComponent.evChanged"))
+
+		#Userprefs
+		(var userPrefsComponent:gfx = "$datahub.getSingleComponent(CC.userPrefs)")
+		(var userPrefsNum:dict = "userPrefsComponent.userPrefs.chatBoxWidth" (event "userPrefsComponent.evUserPrefsChanged"))
+
+		(macro SM_GET_PREF_NUMBER _varName="'alphaScale'" _prefKey="SM_COLOR_PREF_NAME.WORLD.ALPHA" _default="SM_COLOR_DEFAULT.WORLD.ALPHA")
+		(macro SM_GET_PREF_NUMBER _varName="'redScale'" _prefKey="SM_COLOR_PREF_NAME.WORLD.RED" _default="SM_COLOR_DEFAULT.WORLD.RED")
+		(macro SM_GET_PREF_NUMBER _varName="'greenScale'" _prefKey="SM_COLOR_PREF_NAME.WORLD.GREEN" _default="SM_COLOR_DEFAULT.WORLD.GREEN")
+		(macro SM_GET_PREF_NUMBER _varName="'blueScale'" _prefKey="SM_COLOR_PREF_NAME.WORLD.BLUE" _default="SM_COLOR_DEFAULT.WORLD.BLUE")
+
+		(var colorTransform:dict = "{ redMultiplier: redScale, greenMultiplier: greenScale, blueMultiplier: blueScale, alphaMultiplier: alphaScale}")
 	)
 
 	(controller $Repeat renderer='WorldSmokeMarker'
-		(bind count "smokeMarkerEntityIds.length" (event "dataComponent.evChanged"))
-		(args "smokeMarkerEntityIds[$index]")
+		(bind count "smokeMarkerEntityIds.length")
+		(args
+			_entityId="smokeMarkerEntityIds[$index]"
+			_colorTransform="colorTransform"
+		)
 	)
 )
 
 
-(def element WorldSmokeMarker (entityId:number) layout=true
+(def element WorldSmokeMarker (_entityId:number, _colorTransform:dict="{}") layout=true
 	(scope
-		#Event
-		(event evMarkerUpdate)
 		#Smoke Timers Entity
-		(var smokeMarkerEntity:gfx = "$datahub.getEntity(entityId)")
+		(var smokeMarkerEntity:gfx = "$datahub.getEntity(_entityId)")
 		(var createdTime:number = "smokeMarkerEntity.data.data.spawnTime")
 		(var screenPosition:gfx = "smokeMarkerEntity.screenPosition")
 		(var worldMarker:gfx = "smokeMarkerEntity.worldMarker")
@@ -41,14 +87,11 @@
 		(var timeElapsed:number = "timerEntity.timer.currentTime - createdTime" (event "timerEntity.timer.evInfrequent"))
 		(var timeElapsedText:str = "isTimerEnabled && isTimerVisible ? '+' + round(timeElapsed) : ' '")
 		#Screen Pos
-		(var posX:number = "screenPosition ? screenPosition.position.x : 0" (event "evMarkerUpdate"))
-		(var posY:number = "screenPosition ? screenPosition.position.y : 0" (event "evMarkerUpdate"))
+		(var posX:number = "screenPosition ? screenPosition.position.x : 0" (event "evEnterFrame"))
+		(var posY:number = "screenPosition ? screenPosition.position.y : 0" (event "evEnterFrame"))
 		(var posZ:number = "worldMarker ? worldMarker.zindex : 0" (event "worldMarker.evZindexChanged"))
-		(var updateEnabled:bool = "screenPosition && !(screenPosition.behindCamera)" (event "evEnterFrame"))
 		
 	)
-
-	(dispatch evMarkerUpdate args={} (event "evEnterFrame") (bind enabled "updateEnabled"))
 
 	(style
 		(bind left "posX")
@@ -65,13 +108,14 @@
 			(width = 0) (height = 0)
 		)
 		
-		(element SmokeDistanceItem "entityId" "isDistanceVisible")
+		(element SmokeDistanceItem "_entityId" "isDistanceVisible")
 		(block
 			(style
 				(bind backgroundImage "'url:../quick_commands/qc_icon_smoke.png'")
 				(width = 51) (height = 51)
 				(scaleX = 0.4) (scaleY = 0.4)
 			)
+			(bind colorTransform "_colorTransform")
 		)
 		(element SimpleMarkerTextItem "timeElapsedText")
 	)
@@ -93,26 +137,6 @@
 ######################################################
 #### MINIMAP MARKERS #################################
 ######################################################
-(def constant TT_SMOKEMARKER_INSTALLED true) #for modconfig
-(def constant SM_COLOR_PREF_NAME {
-	ALPHA:	'smokeMarkerMinimapOpacity',
-	RED:	'smokeMarkerMinimapRed',
-	GREEN:	'smokeMarkerMinimapGreen',
-	BLUE:	'smokeMarkerMinimapBlue',
-})
-(def constant SM_COLOR_DEFAULT {
-	ALPHA: 4,
-	RED: 8,
-	GREEN: 8,
-	BLUE: 8,
-})
-
-(def macro SM_GET_COLORSCALE_PREF (_colorName:expression)
-	(var name="_colorName+'PrefName'" type=str value="SM_COLOR_PREF_NAME[toUpper(_colorName)]")
-	(var name="_colorName+'PrefNum'" type=number value="$scope[_colorName+'PrefName'] in userPrefsNum ? round(userPrefsNum[$scope[_colorName+'PrefName']]) : SM_COLOR_DEFAULT[toUpper(_colorName)]" (event "userPrefsComponent.evUserPrefsChanged"))
-	(var name="_colorName+'Scale'" type=number value="$scope[_colorName+'PrefNum'] / 10.0" (event "userPrefsComponent.evUserPrefsChanged"))
-)
-
 (def element MinimapMarkersContainer (_mapScale:number, _itemScale:number, _scaleRatio:number, _markerSettingsMap:array, _isLoading:bool = false) layout=true
 	(scope
 		(var markersCollection:gfx = "$datahub.getCollection(CC.minimapMarker)")
@@ -142,26 +166,33 @@
 		#UserPrefs
 		(var userPrefsComponent:gfx = "$datahub.getSingleComponent(CC.userPrefs)")
 		(var userPrefsNum:dict = "userPrefsComponent.userPrefs.chatBoxWidth" (event "userPrefsComponent.evUserPrefsChanged"))
-		(macro SM_GET_COLORSCALE_PREF "'alpha'") #alphaScale
-		(macro SM_GET_COLORSCALE_PREF "'red'") #redScale
-		(macro SM_GET_COLORSCALE_PREF "'green'") #greenScale
-		(macro SM_GET_COLORSCALE_PREF "'blue'") #blueScale
+		
+		(macro SM_GET_PREF_NUMBER _varName="'alphaScale'" _prefKey="SM_COLOR_PREF_NAME.MINIMAP.ALPHA" _default="SM_COLOR_DEFAULT.MINIMAP.ALPHA")
+		(macro SM_GET_PREF_NUMBER _varName="'redScale'" _prefKey="SM_COLOR_PREF_NAME.MINIMAP.RED" _default="SM_COLOR_DEFAULT.MINIMAP.RED")
+		(macro SM_GET_PREF_NUMBER _varName="'greenScale'" _prefKey="SM_COLOR_PREF_NAME.MINIMAP.GREEN" _default="SM_COLOR_DEFAULT.MINIMAP.GREEN")
+		(macro SM_GET_PREF_NUMBER _varName="'blueScale'" _prefKey="SM_COLOR_PREF_NAME.MINIMAP.BLUE" _default="SM_COLOR_DEFAULT.MINIMAP.BLUE")
 	)
 
-	(mc 'flash.display.Sprite'
+	(block
 		(controller $Repeat renderer='MapSmokeMarker'
-			(bind count "smokeMarkerEntityIds.length" (event "dataComponent.evChanged"))
-			(args "smokeMarkerEntityIds[$index]" "_mapScale" "_itemScale" "_scaleRatio")
+			(bind count "smokeMarkerEntityIds.length")
+			(args
+				_entityId="smokeMarkerEntityIds[$index]"
+				_mapScale="_mapScale"
+				_itemScale="_itemScale"
+				_scaleRatio="_scaleRatio"
+			)
 		)
 		(bind colorTransform "{ redMultiplier: redScale, greenMultiplier: greenScale, blueMultiplier: blueScale, alphaMultiplier: alphaScale}")
 		(blendMode = 'layer')
 	)
 )
 
-(def element MapSmokeMarker (entityId:number, _mapScale:number, _itemScale:number, _scaleRatio:number) layout=true
+(def element MapSmokeMarker (_entityId:number, _mapScale:number, _itemScale:number, _scaleRatio:number) layout=true
 	(scope
+		(event evShow)
 		#Smoke Timers Entity
-		(var smokeMarkerEntity:gfx = "$datahub.getEntity(entityId)")
+		(var smokeMarkerEntity:gfx = "$datahub.getEntity(_entityId)")
 		(var mapPosition:gfx = "smokeMarkerEntity.mapPosition")
 		#Marker Scale
 		(var markerScale:number = "_itemScale / _mapScale")
@@ -172,6 +203,8 @@
 		(var posZ:number = "worldMarker ? worldMarker.zindex : 0" (event "worldMarker.evZindexChanged"))
 	)
 
+	(dispatch evShow on=addedToStage)
+
 	(macro BIND_FAIR_SCALE "markerScale")
 
 	(style
@@ -179,6 +212,19 @@
 		(bind top "posY")
 		(bind zindex "posZ")
 		(position = "absolute")
+	)
+
+	#For some really weird reason, a circle does not appear when there is only one instance within the parent repeat.
+	#This animation somehow solves that issue, but not sure why it happens in the first place.
+	#Disabling blendMode=layer solves the problem, so I assume this is a bug on the framework/AS3 side than this mod itself.
+	(controller $Animation		
+		(bindcall  play
+			duration=0.01
+			from={alpha: 0}
+			to={alpha: 1}
+			easing="Easing.quint_in"
+			(event "evShow")
+		)
 	)
 
 	(block
