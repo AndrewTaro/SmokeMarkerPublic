@@ -29,7 +29,7 @@
 })
 
 (def macro SM_GET_PREF_NUMBER (_varName:expression, _prefKey:expression, _default:expression="0.8")
-	(var name="_varName" type=number value="(userPrefsNum && _prefKey in userPrefsNum) ? (round(userPrefsNum[_prefKey]) * 0.1) : _default")
+	(var name="_varName" type=number value="(userPrefsNum && toString(userPrefsNum[_prefKey]) != null) ? (round(userPrefsNum[_prefKey]) * 0.1) : _default")
 )
 
 ######################################################
@@ -44,7 +44,7 @@
 
 		#Userprefs
 		(var userPrefsComponent:gfx = "$datahub.getSingleComponent(CC.userPrefs)")
-		(var userPrefsNum:dict = "userPrefsComponent.userPrefs.chatBoxWidth" (event "userPrefsComponent.evUserPrefsChanged"))
+		(var userPrefsNum:dict = "userPrefsComponent.userPrefs.chatBoxWidth" watch=false (event "userPrefsComponent.evUserPrefsChanged"))
 
 		(macro SM_GET_PREF_NUMBER _varName="'alphaScale'" _prefKey="SM_COLOR_PREF_NAME.WORLD.ALPHA" _default="SM_COLOR_DEFAULT.WORLD.ALPHA")
 		(macro SM_GET_PREF_NUMBER _varName="'redScale'" _prefKey="SM_COLOR_PREF_NAME.WORLD.RED" _default="SM_COLOR_DEFAULT.WORLD.RED")
@@ -165,7 +165,7 @@
 
 		#UserPrefs
 		(var userPrefsComponent:gfx = "$datahub.getSingleComponent(CC.userPrefs)")
-		(var userPrefsNum:dict = "userPrefsComponent.userPrefs.chatBoxWidth" (event "userPrefsComponent.evUserPrefsChanged"))
+		(var userPrefsNum:dict = "userPrefsComponent.userPrefs.chatBoxWidth" watch=false (event "userPrefsComponent.evUserPrefsChanged"))
 		
 		(macro SM_GET_PREF_NUMBER _varName="'alphaScale'" _prefKey="SM_COLOR_PREF_NAME.MINIMAP.ALPHA" _default="SM_COLOR_DEFAULT.MINIMAP.ALPHA")
 		(macro SM_GET_PREF_NUMBER _varName="'redScale'" _prefKey="SM_COLOR_PREF_NAME.MINIMAP.RED" _default="SM_COLOR_DEFAULT.MINIMAP.RED")
