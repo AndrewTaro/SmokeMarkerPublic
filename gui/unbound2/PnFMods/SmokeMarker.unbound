@@ -39,7 +39,7 @@
 	(scope
 		(var parameterCol:gfx = "$datahub.getCollection(CC.parameter)")
 		(var smokeMarkersContainerEntity:gfx = "$datahub.getPrimaryCompositeEntity(CC.parameter, 0, 'modSmokeMarkerEntityList')" (event "parameterCol.evAdded") (event "parameterCol.evRemoved"))
-		(var dataComponent:gfx = "smokeMarkersContainerEntity.data")
+		(var dataComponent:gfx = "smokeMarkersContainerEntity ? smokeMarkersContainerEntity.data : null")
 		(var smokeMarkerEntityIds:array = "dataComponent ? dataComponent.data.ids : []" (event "dataComponent.evChanged"))
 
 		#Userprefs
@@ -67,30 +67,37 @@
 (def element WorldSmokeMarker (_entityId:number, _colorTransform:dict="{}") layout=true
 	(scope
 		#Smoke Timers Entity
-		(var smokeMarkerEntity:gfx = "$datahub.getEntity(_entityId)")
-		(var createdTime:number = "smokeMarkerEntity.data.data.spawnTime")
-		(var screenPosition:gfx = "smokeMarkerEntity.screenPosition")
-		(var worldMarker:gfx = "smokeMarkerEntity.worldMarker")
+		(var _markerEntity:gfx = "$datahub.getEntity(_entityId)")
+
+		(macro GET_MARKER_ENTITY_COMPONENT 'data')
+		(macro GET_MARKER_ENTITY_COMPONENT 'screenPosition')
+		(macro GET_MARKER_ENTITY_COMPONENT 'worldMarker')
+		(macro GET_MARKER_ENTITY_COMPONENT 'distance')
+		(macro GET_MARKER_ENTITY_COMPONENT '')
+
+
+		(var createdTime:number = "dataComponent ? dataComponent.data.spawnTime : -1")
 		#Visibility
-		(var cameraEntity:gfx = "$datahub.getSingleEntity(CC.camera)")
-		(var altVision:bool = "cameraEntity.camera.altVision" (event "cameraEntity.camera.evAltVisionChanged"))
-		(var isBinocular:bool = "cameraEntity.camera.isBinocular" (event "cameraEntity.camera.evIsBinocularChanged"))
-		(var distanceComponent:gfx = "smokeMarkerEntity.distance" (event "smokeMarkerEntity.evAdded") (event "smokeMarkerEntity.evRemoved"))
-		(var distanceIndex:number = "distanceComponent.distanceIndex" (event "distanceComponent.evDistanceIndexChanged"))
+		(var camera:gfx = "$datahub.getSingleComponent(CC.camera)")
+		(var altVision:bool = "camera.altVision" (event "camera.evAltVisionChanged"))
+		(var isBinocular:bool = "camera.isBinocular" (event "camera.evIsBinocularChanged"))
+
+		(var distanceIndex:number = "distanceComponent ? distanceComponent.distanceIndex : -1" (event "distanceComponent.evDistanceIndexChanged"))
 		(var closeToCamera:bool = "distanceIndex == DistanceType.NEAR")
 		(var isTimerVisible:bool = "altVision || closeToCamera")
 		(var isDistanceVisible:bool = "altVision")
 		(var markerAlpha:number = "isBinocular ? 0.7 : 1.0")
+		
 		#Timers
 		(var isTimerEnabled:bool = "createdTime > 0")
-		(var timerEntity:gfx = "$datahub.getSingleEntity(CC.timer)")
-		(var timeElapsed:number = "timerEntity.timer.currentTime - createdTime" (event "timerEntity.timer.evInfrequent"))
+		(var timer:gfx = "$datahub.getSingleComponent(CC.timer)")
+		(var timeElapsed:number = "timer.currentTime - createdTime" (event "timer.evInfrequent"))
 		(var timeElapsedText:str = "isTimerEnabled && isTimerVisible ? '+' + round(timeElapsed) : ' '")
+
 		#Screen Pos
-		(var posX:number = "screenPosition ? screenPosition.position.x : 0" (event "evEnterFrame"))
-		(var posY:number = "screenPosition ? screenPosition.position.y : 0" (event "evEnterFrame"))
-		(var posZ:number = "worldMarker ? worldMarker.zindex : 0" (event "worldMarker.evZindexChanged"))
-		
+		(var posX:number = "screenPositionComponent ? screenPositionComponent.position.x : 0" (event "evEnterFrame"))
+		(var posY:number = "screenPositionComponent ? screenPositionComponent.position.y : 0" (event "evEnterFrame"))
+		(var posZ:number = "worldMarkerComponent ? worldMarkerComponent.zindex : 0" (event "worldMarkerComponent.evZindexChanged"))
 	)
 
 	(style
@@ -160,7 +167,7 @@
 	(scope
 		(var parameterCol:gfx = "$datahub.getCollection(CC.parameter)")
 		(var smokeMarkersContainerEntity:gfx = "$datahub.getPrimaryCompositeEntity(CC.parameter, 0, 'modSmokeMarkerEntityList')" (event "parameterCol.evAdded") (event "parameterCol.evRemoved"))
-		(var dataComponent:gfx = "smokeMarkersContainerEntity.data")
+		(var dataComponent:gfx = "smokeMarkersContainerEntity ? smokeMarkersContainerEntity.data : null")
 		(var smokeMarkerEntityIds:array = "dataComponent ? dataComponent.data.ids : []" (event "dataComponent.evChanged"))
 
 		#UserPrefs
@@ -200,7 +207,6 @@
 		#Map Pos
 		(var posX:number = "mapPosition ? _scaleRatio * mapPosition.position.x : 0")# (event "evEnterFrame"))
 		(var posY:number = "mapPosition ? _scaleRatio * mapPosition.position.y : 0")# (event "evEnterFrame"))
-		(var posZ:number = "worldMarker ? worldMarker.zindex : 0" (event "worldMarker.evZindexChanged"))
 	)
 
 	(dispatch evShow on=addedToStage)
@@ -210,7 +216,6 @@
 	(style
 		(bind left "posX")
 		(bind top "posY")
-		(bind zindex "posZ")
 		(position = "absolute")
 	)
 
