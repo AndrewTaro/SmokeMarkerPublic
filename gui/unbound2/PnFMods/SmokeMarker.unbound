@@ -41,6 +41,7 @@
 		(var smokeMarkersContainerEntity:gfx = "$datahub.getPrimaryCompositeEntity(CC.parameter, 0, 'modSmokeMarkerEntityList')" (event "parameterCol.evAdded") (event "parameterCol.evRemoved"))
 		(var dataComponent:gfx = "smokeMarkersContainerEntity ? smokeMarkersContainerEntity.data : null")
 		(var smokeMarkerEntityIds:array = "dataComponent ? dataComponent.data.ids : []" (event "dataComponent.evChanged"))
+		(var entityIdsCount:number = "smokeMarkerEntityIds ? smokeMarkerEntityIds.length : 0")
 
 		#Userprefs
 		(var userPrefsComponent:gfx = "$datahub.getSingleComponent(CC.userPrefs)")
@@ -55,7 +56,8 @@
 	)
 
 	(controller $Repeat renderer='WorldSmokeMarker'
-		(bind count "smokeMarkerEntityIds.length")
+		(bind enabled "entityIdsCount > 0")
+		(bind count "entityIdsCount")
 		(args
 			_entityId="smokeMarkerEntityIds[$index]"
 			_colorTransform="colorTransform"
@@ -87,7 +89,7 @@
 		(var isTimerVisible:bool = "altVision || closeToCamera")
 		(var isDistanceVisible:bool = "altVision")
 		(var markerAlpha:number = "isBinocular ? 0.7 : 1.0")
-		
+
 		#Timers
 		(var isTimerEnabled:bool = "createdTime > 0")
 		(var timer:gfx = "$datahub.getSingleComponent(CC.timer)")
@@ -169,6 +171,7 @@
 		(var smokeMarkersContainerEntity:gfx = "$datahub.getPrimaryCompositeEntity(CC.parameter, 0, 'modSmokeMarkerEntityList')" (event "parameterCol.evAdded") (event "parameterCol.evRemoved"))
 		(var dataComponent:gfx = "smokeMarkersContainerEntity ? smokeMarkersContainerEntity.data : null")
 		(var smokeMarkerEntityIds:array = "dataComponent ? dataComponent.data.ids : []" (event "dataComponent.evChanged"))
+		(var entityIdsCount:number = "smokeMarkerEntityIds ? smokeMarkerEntityIds.length : 0")
 
 		#UserPrefs
 		(var userPrefsComponent:gfx = "$datahub.getSingleComponent(CC.userPrefs)")
@@ -182,7 +185,8 @@
 
 	(block
 		(controller $Repeat renderer='MapSmokeMarker'
-			(bind count "smokeMarkerEntityIds.length")
+			(bind enabled "entityIdsCount 0")
+			(bind count "entityIdsCount")
 			(args
 				_entityId="smokeMarkerEntityIds[$index]"
 				_mapScale="_mapScale"
