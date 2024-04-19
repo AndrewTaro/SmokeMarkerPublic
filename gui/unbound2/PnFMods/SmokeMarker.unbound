@@ -185,7 +185,7 @@
 
 	(block
 		(controller $Repeat renderer='MapSmokeMarker'
-			(bind enabled "entityIdsCount 0")
+			(bind enabled "entityIdsCount > 0")
 			(bind count "entityIdsCount")
 			(args
 				_entityId="smokeMarkerEntityIds[$index]"
