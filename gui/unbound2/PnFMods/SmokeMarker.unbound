@@ -16,6 +16,11 @@
 	(var name="_varName" type=number value="userPrefsNum && isNumber(userPrefsNum[_pref.KEY]) ? round(userPrefsNum[_pref.KEY]) * 0.1 : _pref.DEFAULT")
 )
 
+(def macro SM_GET_USERPREFSNUM ()
+	(var userPrefsComponent:gfx = "$datahub.getSingleComponent(CC.userPrefs)")
+	(var userPrefsNum:gfx = "userPrefsComponent.userPrefs.chatBoxWidth" watch=false (event "userPrefsComponent.evUserPrefsChanged"))
+)
+
 ######################################################
 #### WORLD MARKERS ###################################
 ######################################################
@@ -28,8 +33,7 @@
 		(var entityIdsCount:number = "smokeMarkerEntityIds ? smokeMarkerEntityIds.length : 0")
 
 		#Userprefs
-		(var userPrefsComponent:gfx = "$datahub.getSingleComponent(CC.userPrefs)")
-		(var userPrefsNum:dict = "userPrefsComponent.userPrefs.chatBoxWidth" watch=false (event "userPrefsComponent.evUserPrefsChanged"))
+		(macro SM_GET_USERPREFSNUM)
 
 		(macro SM_GET_PREF_NUMBER _varName="'alphaScale'"	_pref="SM_PREFS.WORLD_ALPHA")
 		(macro SM_GET_PREF_NUMBER _varName="'redScale'" 	_pref="SM_PREFS.WORLD_RED")
@@ -168,8 +172,7 @@
 		(var entityIdsCount:number = "smokeMarkerEntityIds ? smokeMarkerEntityIds.length : 0")
 
 		#UserPrefs
-		(var userPrefsComponent:gfx = "$datahub.getSingleComponent(CC.userPrefs)")
-		(var userPrefsNum:dict = "userPrefsComponent.userPrefs.chatBoxWidth" watch=false (event "userPrefsComponent.evUserPrefsChanged"))
+		(macro SM_GET_USERPREFSNUM)
 		
 		(macro SM_GET_PREF_NUMBER _varName="'alphaScale'"	_pref="SM_PREFS.MAP_ALPHA")
 		(macro SM_GET_PREF_NUMBER _varName="'redScale'" 	_pref="SM_PREFS.MAP_RED")
