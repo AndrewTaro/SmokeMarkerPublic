@@ -1,35 +1,19 @@
 (def constant TT_SMOKEMARKER_INSTALLED true) #for modconfig
-(def constant SM_COLOR_PREF_NAME {
-	MINIMAP: {
-		ALPHA:	'smokeMarkerMinimapOpacity',
-		RED:	'smokeMarkerMinimapRed',
-		GREEN:	'smokeMarkerMinimapGreen',
-		BLUE:	'smokeMarkerMinimapBlue',
-	},
-	WORLD: {
-		ALPHA:	'smokeMarkerWorldOpacity',
-		RED:	'smokeMarkerWorldRed',
-		GREEN:	'smokeMarkerWorldGreen',
-		BLUE:	'smokeMarkerWorldBlue',
-	},
-})
-(def constant SM_COLOR_DEFAULT {
-	MINIMAP: {
-		ALPHA: 0.4,
-		RED: 0.8,
-		GREEN: 0.8,
-		BLUE: 0.8,
-	},
-	WORLD: {
-		ALPHA: 1.0,
-		RED: 1.0,
-		GREEN: 1.0,
-		BLUE: 1.0,
-	},
+
+(def constant SM_PREFS {
+	MAP_ALPHA:	 {KEY: 'smokeMarkerMinimapOpacity', DEFAULT: 0.4},
+	MAP_RED:	 {KEY: 'smokeMarkerMinimapRed',		DEFAULT: 0.8},
+	MAP_GREEN:	 {KEY: 'smokeMarkerMinimapGreen',	DEFAULT: 0.8},
+	MAP_BLUE:	 {KEY: 'smokeMarkerMinimapBlue',	DEFAULT: 0.8},
+
+	WORLD_ALPHA: {KEY: 'smokeMarkerWorldOpacity',	DEFAULT: 1.0},
+	WORLD_RED:	 {KEY: 'smokeMarkerWorldRed',		DEFAULT: 1.0},
+	WORLD_GREEN: {KEY: 'smokeMarkerWorldGreen',		DEFAULT: 1.0},
+	WORLD_BLUE:	 {KEY: 'smokeMarkerWorldBlue',		DEFAULT: 1.0},
 })
 
-(def macro SM_GET_PREF_NUMBER (_varName:expression, _prefKey:expression, _default:expression="0.8")
-	(var name="_varName" type=number value="(userPrefsNum && toString(userPrefsNum[_prefKey]) != null) ? (round(userPrefsNum[_prefKey]) * 0.1) : _default")
+(def macro SM_GET_PREF_NUMBER (_varName:expression, _pref:expression)
+	(var name="_varName" type=number value="userPrefsNum && isNumber(userPrefsNum[_pref.KEY]) ? round(userPrefsNum[_pref.KEY]) * 0.1 : _pref.DEFAULT")
 )
 
 ######################################################
@@ -47,10 +31,10 @@
 		(var userPrefsComponent:gfx = "$datahub.getSingleComponent(CC.userPrefs)")
 		(var userPrefsNum:dict = "userPrefsComponent.userPrefs.chatBoxWidth" watch=false (event "userPrefsComponent.evUserPrefsChanged"))
 
-		(macro SM_GET_PREF_NUMBER _varName="'alphaScale'" _prefKey="SM_COLOR_PREF_NAME.WORLD.ALPHA" _default="SM_COLOR_DEFAULT.WORLD.ALPHA")
-		(macro SM_GET_PREF_NUMBER _varName="'redScale'" _prefKey="SM_COLOR_PREF_NAME.WORLD.RED" _default="SM_COLOR_DEFAULT.WORLD.RED")
-		(macro SM_GET_PREF_NUMBER _varName="'greenScale'" _prefKey="SM_COLOR_PREF_NAME.WORLD.GREEN" _default="SM_COLOR_DEFAULT.WORLD.GREEN")
-		(macro SM_GET_PREF_NUMBER _varName="'blueScale'" _prefKey="SM_COLOR_PREF_NAME.WORLD.BLUE" _default="SM_COLOR_DEFAULT.WORLD.BLUE")
+		(macro SM_GET_PREF_NUMBER _varName="'alphaScale'"	_pref="SM_PREFS.WORLD_ALPHA")
+		(macro SM_GET_PREF_NUMBER _varName="'redScale'" 	_pref="SM_PREFS.WORLD_RED")
+		(macro SM_GET_PREF_NUMBER _varName="'greenScale'"	_pref="SM_PREFS.WORLD_GREEN")
+		(macro SM_GET_PREF_NUMBER _varName="'blueScale'"	_pref="SM_PREFS.WORLD_BLUE")
 
 		(var colorTransform:dict = "{ redMultiplier: redScale, greenMultiplier: greenScale, blueMultiplier: blueScale, alphaMultiplier: alphaScale}")
 	)
@@ -177,10 +161,10 @@
 		(var userPrefsComponent:gfx = "$datahub.getSingleComponent(CC.userPrefs)")
 		(var userPrefsNum:dict = "userPrefsComponent.userPrefs.chatBoxWidth" watch=false (event "userPrefsComponent.evUserPrefsChanged"))
 		
-		(macro SM_GET_PREF_NUMBER _varName="'alphaScale'" _prefKey="SM_COLOR_PREF_NAME.MINIMAP.ALPHA" _default="SM_COLOR_DEFAULT.MINIMAP.ALPHA")
-		(macro SM_GET_PREF_NUMBER _varName="'redScale'" _prefKey="SM_COLOR_PREF_NAME.MINIMAP.RED" _default="SM_COLOR_DEFAULT.MINIMAP.RED")
-		(macro SM_GET_PREF_NUMBER _varName="'greenScale'" _prefKey="SM_COLOR_PREF_NAME.MINIMAP.GREEN" _default="SM_COLOR_DEFAULT.MINIMAP.GREEN")
-		(macro SM_GET_PREF_NUMBER _varName="'blueScale'" _prefKey="SM_COLOR_PREF_NAME.MINIMAP.BLUE" _default="SM_COLOR_DEFAULT.MINIMAP.BLUE")
+		(macro SM_GET_PREF_NUMBER _varName="'alphaScale'"	_pref="SM_PREFS.MAP_ALPHA")
+		(macro SM_GET_PREF_NUMBER _varName="'redScale'" 	_pref="SM_PREFS.MAP_RED")
+		(macro SM_GET_PREF_NUMBER _varName="'greenScale'"	_pref="SM_PREFS.MAP_GREEN")
+		(macro SM_GET_PREF_NUMBER _varName="'blueScale'"	_pref="SM_PREFS.MAP_BLUE")
 	)
 
 	(block
