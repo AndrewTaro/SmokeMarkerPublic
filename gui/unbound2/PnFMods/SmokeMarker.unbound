@@ -107,19 +107,25 @@
 			(width = 0) (height = 0)
 		)
 		
-		(element SmokeDistanceItem "_entityId" "isDistanceVisible")
+		(element DistanceItem "_markerEntity"
+			(bind alpha "isDistanceVisible ? 1 : 0")
+		)
 		(block
-			(style
-				(bind backgroundImage "'url:../quick_commands/qc_icon_smoke.png'")
-				(width = 51) (height = 51)
-				(scaleX = 1.5) (scaleY = 1.5)
-			)
-			(controller $Animation
-				(bindcall play	duration="0.3"
-								from="{alpha: 0, marginBottom: 10, scaleX: 1.5, scaleY: 1.5}"
-								to="{alpha: 1, marginBottom: 0, scaleX: 0.4, scaleY: 0.4}"
-								action="kill"
-								(event "evMarkerShow")
+			# To avoid conflict between alpha animation and colortransform
+			# Simply moving the animation outside doesn't work with marginBottom
+			(block
+				(style
+					(bind backgroundImage "'url:../quick_commands/qc_icon_smoke.png'")
+					(width = 51) (height = 51)
+					(scaleX = 1.5) (scaleY = 1.5)
+				)
+				(controller $Animation
+					(bindcall play	duration="0.3"
+									from="{alpha: 0, marginBottom: 10, scaleX: 1.5, scaleY: 1.5}"
+									to="{alpha: 1, marginBottom: 0, scaleX: 0.4, scaleY: 0.4}"
+									action="kill"
+									(event "evMarkerShow")
+					)
 				)
 			)
 			(bind colorTransform "_colorTransform")
