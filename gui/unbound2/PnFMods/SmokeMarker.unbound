@@ -67,24 +67,28 @@
 		(macro GET_MARKER_ENTITY_COMPONENT 'distance')
 
 		(var createdTime:number = "dataComponent ? dataComponent.data.spawnTime : -1")
-		#Visibility
+		# Camera
 		(var camera:gfx = "$datahub.getSingleComponent(CC.camera)")
 		(var altVision:bool = "camera.altVision" (event "camera.evAltVisionChanged"))
 		(var isBinocular:bool = "camera.isBinocular" (event "camera.evIsBinocularChanged"))
+		(var isTactical:bool = "camera.isTactical" (event "camera.evTacticalStateChanged"))
 
-		(var distanceIndex:number = "distanceComponent ? distanceComponent.distanceIndex : -1" (event "distanceComponent.evDistanceIndexChanged"))
-		(var closeToCamera:bool = "distanceIndex == DistanceType.NEAR")
-		(var isTimerVisible:bool = "altVision || closeToCamera")
-		(var isDistanceVisible:bool = "altVision")
 		(var markerAlpha:number = "isBinocular ? 0.7 : 1.0")
 
-		#Timers
-		(var isTimerEnabled:bool = "createdTime > 0")
+		# Distance
+		(var distanceIndex:number = "distanceComponent ? distanceComponent.distanceIndex : -1" (event "distanceComponent.evDistanceIndexChanged"))
+		(var closeToCamera:bool = "distanceIndex == DistanceType.NEAR")
+		(var isDistanceVisible:bool = "altVision && !isTactical")
+
+		# Timers
+		(macro IS_SPECTATOR_MODE)
+		(var isTimerValid:bool = "createdTime > 0")
+		(var isTimerVisible:bool = "(altVision || (isSpectatorTrainingMode && closeToCamera)) && !isTactical && isTimerValid")
 		(var timer:gfx = "$datahub.getSingleComponent(CC.timer)")
 		(var timeElapsed:number = "timer.currentTime - createdTime" (event "timer.evInfrequent"))
-		(var timeElapsedText:str = "isTimerEnabled && isTimerVisible ? '+' + round(timeElapsed) : ' '")
+		(macro HUMAN_READABLE_COUNTDOWN_SCOPE "timeElapsed")
 
-		#Screen Pos
+		# Screen Pos
 		(var posX:number = "screenPositionComponent ? screenPositionComponent.position.x : 0" (event "evEnterFrame"))
 		(var posY:number = "screenPositionComponent ? screenPositionComponent.position.y : 0" (event "evEnterFrame"))
 		(var posZ:number = "worldMarkerComponent ? worldMarkerComponent.zindex : 0" (event "worldMarkerComponent.evZindexChanged"))
@@ -130,21 +134,10 @@
 			)
 			(bind colorTransform "_colorTransform")
 		)
-		(element SimpleMarkerTextItem "timeElapsedText")
+		(element SimpleMarkerTextItem "countdownText"
+			(bind alpha "isTimerVisible ? 1 : 0")
+		)
 	)
-)
-
-(def element SmokeDistanceItem (_entityId:number, _visibility:bool) layout=true
-	(scope
-		(var _markerEntity:gfx = "$datahub.getEntity(_entityId)")
-
-		(var timer:gfx = "$datahub.getSingleComponent(CC.timer)")
-
-		(macro GET_MARKER_ENTITY_COMPONENT 'distance')
-		(var distanceToShip:number = "distanceComponent ? distanceComponent.distanceToShip : 0" (event "timer.evInfrequent"))
-		(var distanceText:str = "_visibility ? formatFloatingPoint(round(distanceToShip * 10) / 10, 1) + ' ' + tr('IDS_KILOMETER'): ' '")
-	)
-	(element SimpleMarkerTextItem "distanceText")
 )
 
 ######################################################
