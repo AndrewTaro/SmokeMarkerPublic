@@ -1,7 +1,7 @@
 # Smoke Marker
 This modification places the marker icon on the smoke puff on 3D world and minimap.
 
-By pressing Alt-key, it displays the distance to the smoke.
+By pressing the Alt-key, it displays the distance to the smoke.
 If the player is an observer, you can also check the time elapsed since the smoke point is created.
 
 The mod is officially checked and approved by WG, thus is safe to use.
@@ -12,9 +12,9 @@ The mod is officially checked and approved by WG, thus is safe to use.
 
 # Install
 1. Download a zip.
-2. Unzip the archive and you should get `gui`, `PnFMods` folders and `PnFModsLoader.py`.
+2. Unzip the archive and you should get `gui`, `PnFMods` folders, and `PnFModsLoader.py`.
 3. Move them to `(wows)/bin/(latest_number)/res_mods/`. So the path will look like `res_mods/PnFModsLoader.py`, etc.
 4. Done!
 
-# Config
-[TTaro Mod Config](../../../TTaroModConfig) supports this mod.  You can adjust the color of the smoke marker on minimap.
+# Requirements
+- [TTaro Mod Config](../../../TTaroModConfig): you must install this config in order to use the mod.
