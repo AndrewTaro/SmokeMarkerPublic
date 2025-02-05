@@ -3,7 +3,7 @@
 ######################################################
 #### WORLD MARKERS ###################################
 ######################################################
-(def element WorldSmokeMarkersContainer() layout=true
+(def element SM_WorldSmokeMarkersContainer() layout=true
 	(scope
 		(var parameterCol:gfx = "$datahub.getCollection(CC.parameter)")
 		(var smokeMarkersContainerEntity:gfx = "$datahub.getPrimaryCompositeEntity(CC.parameter, 0, 'modSmokeMarkerEntityList')" (event "parameterCol.evAdded") (event "parameterCol.evRemoved"))
@@ -22,7 +22,7 @@
 		(var colorTransform:dict = "{ redMultiplier: redScale, greenMultiplier: greenScale, blueMultiplier: blueScale, alphaMultiplier: alphaScale}")
 	)
 
-	(controller $Repeat renderer='WorldSmokeMarker'
+	(controller $Repeat renderer='SM_WorldSmokeMarker'
 		(bind enabled "entityIdsCount > 0")
 		(bind count "entityIdsCount")
 		(args
@@ -33,7 +33,7 @@
 )
 
 
-(def element WorldSmokeMarker (_entityId:number, _colorTransform:dict="{}") layout=true
+(def element SM_WorldSmokeMarker (_entityId:number, _colorTransform:dict="{}") layout=true
 	(scope
 		(event evMarkerShow)
 
@@ -131,7 +131,7 @@
 	(class $FullsizeAbsolute)
 
 	#mod
-	(element MapSmokeMarkersContainer "_mapScale" "_itemScale" "_scaleRatio")
+	(element SM_MapSmokeMarkersContainer "_mapScale" "_itemScale" "_scaleRatio")
 	#mod
 
 	(controller $Repeat renderer='MapMarkerItem'
@@ -141,7 +141,7 @@
 	)
 )
 
-(def element MapSmokeMarkersContainer (_mapScale:number, _itemScale:number, _scaleRatio:number) layout=true
+(def element SM_MapSmokeMarkersContainer (_mapScale:number, _itemScale:number, _scaleRatio:number) layout=true
 	(scope
 		(var parameterCol:gfx = "$datahub.getCollection(CC.parameter)")
 		(var smokeMarkersContainerEntity:gfx = "$datahub.getPrimaryCompositeEntity(CC.parameter, 0, 'modSmokeMarkerEntityList')" (event "parameterCol.evAdded") (event "parameterCol.evRemoved"))
@@ -159,7 +159,7 @@
 	)
 
 	(block
-		(controller $Repeat renderer='MapSmokeMarker'
+		(controller $Repeat renderer='SM_MapSmokeMarker'
 			(bind enabled "entityIdsCount > 0")
 			(bind count "entityIdsCount")
 			(args
@@ -174,7 +174,7 @@
 	)
 )
 
-(def element MapSmokeMarker (_entityId:number, _mapScale:number, _itemScale:number, _scaleRatio:number) layout=true
+(def element SM_MapSmokeMarker (_entityId:number, _mapScale:number, _itemScale:number, _scaleRatio:number) layout=true
 	(scope
 		(event evMarkerShow)
 		#Smoke Timers Entity
